@@ -5,7 +5,7 @@ from shape import Shape
 FPS                  = 60
 STEP                 = 8
 TURN_STEP            = math.pi / 360
-WIDTH, HEIGHT        = 640,480
+WIDTH, HEIGHT        = 800,600
 XPOS, YPOS           = 0,1
 ANGLEPOS, COLORPOS   = 2,3
 PLAYER_RADIUS        = 10
