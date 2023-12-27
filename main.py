@@ -1,5 +1,6 @@
 import pygame, math
 from catppuccin import Flavour
+from shape import Shape
 
 FPS                  = 60
 STEP                 = 8
@@ -15,9 +16,8 @@ WALLHEIGHT           = 100
 SHAPEFILE            = "shapes.txt"
 
 COLORS               = Flavour.mocha()
-OUTLINE_COLOR        = COLORS.pink.rgb
+OUTLINE_COLOR        = COLORS.mantle.rgb
 HORIZON_COLOR        = COLORS.surface2.rgb
-FILL_COLOR           = COLORS.mantle.rgb
 
 g_player  = [0,0,0,COLORS.blue.rgb]
 g_3d_view = True
@@ -50,12 +50,8 @@ def load_shapes():
     f.close()
 
     for row in data:
-        shape = list()
-        for point in row.split(';'):
-            x, y = point.split(',')
-            shape.append((int(x),int(y)))
-        g_shapes.append(shape)
-
+        g_shapes.append(Shape(row=row))
+    
 def update(keys, mouse):
     global g_player, g_3d_view, g_clear_v
 
@@ -98,9 +94,9 @@ def update(keys, mouse):
 def is_collision(x,y):
     bounding_box = pygame.Rect( x - BOUNDINGBOX_SIZE // 2, y - BOUNDINGBOX_SIZE // 2, BOUNDINGBOX_SIZE, BOUNDINGBOX_SIZE)
     for shape in g_shapes:
-        for from_point in range(len(shape)):
-            to_point = from_point + 1 if from_point < len(shape) - 1 else 0
-            if bounding_box.clipline(shape[from_point], shape[to_point]):
+        for from_point in range(len(shape.walls)):
+            to_point = from_point + 1 if from_point < len(shape.walls) - 1 else 0
+            if bounding_box.clipline(shape.walls[from_point], shape.walls[to_point]):
                 return True
     return False
 
@@ -118,16 +114,16 @@ def draw_3d(screen):
     walls = list()
 
     for shape in g_shapes:
-        for from_point in range(len(shape)):
-            to_point = from_point + 1 if from_point < len(shape) - 1 else 0
-            if wall := clip(shape[from_point], shape[to_point]):
+        for from_point in range(len(shape.walls)):
+            to_point = from_point + 1 if from_point < len(shape.walls) - 1 else 0
+            if wall := clip(shape.walls[from_point], shape.walls[to_point], shape.color):
                 walls.append(wall)
     walls.sort(key=furthest_wall, reverse=True)
 
     for wall in walls:
         p0 = to_screen_3d(*wall[0])
         p1 = to_screen_3d(*wall[1])
-        pygame.draw.polygon(screen, FILL_COLOR,
+        pygame.draw.polygon(screen, wall[COLORPOS],
                         [ (p0[XPOS], vcenter + p0[YPOS]), 
                         (p1[XPOS], vcenter + p1[YPOS]), 
                         (p1[XPOS], vcenter - p1[YPOS]), 
@@ -146,9 +142,9 @@ def furthest_wall(wall):
 def draw_2d(screen):
     for shape in g_shapes:
         points = list()
-        for point in shape:
+        for point in shape.walls:
             points.append(to_screen_2d(*translate(*point)))
-        pygame.draw.polygon(screen,FILL_COLOR,points,0)
+        pygame.draw.polygon(screen,shape.color,points,0)
         pygame.draw.aalines(screen, OUTLINE_COLOR, True,points, True)
 
     pygame.draw.circle(screen, g_player[COLORPOS], to_screen_2d(*translate(g_player[XPOS], g_player[YPOS])), PLAYER_RADIUS, 1)
@@ -166,17 +162,17 @@ def to_screen_3d(x,y):
 def to_screen_2d(x,y):
     return WIDTH // 2 + x, HEIGHT // 2 - y
 
-def clip(from_point,to_point):
+def clip(from_point,to_point, color):
     f = translate(from_point[XPOS], from_point[YPOS])
     t = translate(to_point[XPOS], to_point[YPOS])
 
     if f[YPOS] >= CLIPDEPTH and t[YPOS] >= CLIPDEPTH:
-        return f,t
+        return f,t,0,color
     if f[YPOS] < CLIPDEPTH and t[YPOS] < CLIPDEPTH:
         return False
-    return clip_wall(f,t)
+    return clip_wall(f,t,color)
 
-def clip_wall(f,t):
+def clip_wall(f,t,color):
     if f[YPOS] >= CLIPDEPTH:
         front = f
         back = t
@@ -186,7 +182,7 @@ def clip_wall(f,t):
     size = front[YPOS] - back[YPOS]
     percent_visible = front[YPOS] / size
     clip_x = front[XPOS] + ( back[XPOS] - front[XPOS] ) * percent_visible
-    return front, (clip_x, CLIPDEPTH)
+    return front, (clip_x, CLIPDEPTH), 0, color
 
 def translate(x,y):
     x -= g_player[XPOS]

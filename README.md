@@ -8,7 +8,6 @@
 * System quit (CMD-Q or ALT-F4) to exit
 
 # TODO
-* Colored walls
 * Make a map!
 * Cull walls that are outside FOV, too small to see, occluded
 
