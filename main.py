@@ -1,5 +1,3 @@
-
-
 import pygame, math
 from catppuccin import Flavour
 
@@ -31,11 +29,16 @@ def main():
     screen = pygame.display.set_mode((WIDTH,HEIGHT))
     pygame.display.set_caption("3D")
     fps =  pygame.time.Clock()
+    pygame.mouse.set_visible(False)
+    pygame.event.set_grab(True)
 
     while True:
         for event in pygame.event.get():
-            if event.type == pygame.QUIT: return
-        update(pygame.key.get_pressed())
+            if event.type == pygame.QUIT:
+                pygame.event.set_grab(False)
+                pygame.mouse.set_visible(True)
+                return
+        update(pygame.key.get_pressed(), pygame.mouse.get_rel())
         draw(screen)
         pygame.display.update()
         fps.tick(FPS)
@@ -53,7 +56,7 @@ def load_shapes():
             shape.append((int(x),int(y)))
         g_shapes.append(shape)
 
-def update(keys):
+def update(keys, mouse):
     global g_player, g_3d_view, g_clear_v
 
     if keys[pygame.K_v] and g_clear_v: 
@@ -89,6 +92,8 @@ def update(keys):
 
     if keys[pygame.K_q]: g_player[ANGLEPOS] += TURN_STEP * STEP
     if keys[pygame.K_e]: g_player[ANGLEPOS] -= TURN_STEP * STEP
+
+    if mouse[XPOS] != 0: g_player[ANGLEPOS] -= TURN_STEP * mouse[XPOS]
 
 def is_collision(x,y):
     bounding_box = pygame.Rect( x - BOUNDINGBOX_SIZE // 2, y - BOUNDINGBOX_SIZE // 2, BOUNDINGBOX_SIZE, BOUNDINGBOX_SIZE)

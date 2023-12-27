@@ -3,11 +3,11 @@
 
 # Controls
 * WASD or arrow keys
-* Q/E to rotate
+* Q/E or mouselook to rotate
 * V to switch view
+* System quit (CMD-Q or ALT-F4) to exit
 
 # TODO
-* Mouselook
 * Colored walls
 * Make a map!
 * Cull walls that are outside FOV, too small to see, occluded
