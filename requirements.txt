@@ -15,7 +15,7 @@ lunr==0.6.2
 Markdown==3.4.4
 mutagen @ file:///private/tmp/python-mutagen-20231008-5554-1csby1/mutagen-1.47.0
 numpy==1.25.2
-Pillow==9.5.0
+Pillow==10.0.1
 pycparser==2.21
 pygame==2.4.0
 pygame_emojis==0.1.1
